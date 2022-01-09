@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+
+<body>
+    <!-- Navbar start -->
+    <div class="container mb-5">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Navbar</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="articles.html">Articles</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Who Are We?
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <li><a class="dropdown-item" href="communication.html">Communication</a></li>
+                                <li><a class="dropdown-item" href="aboutUs.html">About Us</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Navbar end -->
+
+
+    </div>
+    <!--Loading screen start  -->
+
+    <div id="loading" class="mt-5" style="display: none;">
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div class="d-flex justify-content-center">
+            <h1 class="display-1">Yükleniyor..</h1>
+        </div>
+
+    </div>
+    <!-- Loading screen end -->
+
+    <div class="container-fluid" style="margin-top:60px;">
+        <div class="row">
+            <div class="col-md-9">
+                <div>
+                    <div id="article-container" >
+
+           
+                    </div>         
+                    <div id="comment-container">
+    
+                    </div>
+                </div>
+
+
+
+            </div>
+
+            <div class="col-md-3 mt-5 ">
+                <h3 class="display-6 text-center">Title</h3>
+                <form class="form-inline">
+                    <input class="form-control mr-sm-" type="text" onkeyup="search(event)" placeholder="Search"
+                        aria-label="Search">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                </form>
+
+                <!-- Burada tüm makaleler başlığıyla birlikte listeleneecek -->
+                <div class="list-group mt-4">
+                    <div id="list-container">
+
+                    </div>
+
+                    <!-- burada çektiğim dataları sıralayacağım -->
+
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        var data = [];
+        var dataComment = [];
+        var dataUser = []; // global scope var keyword kullanırız.
+        // await ile promise çalıştırıyorsa o await'in function aşağıdaki gibi async olarak işaretlenmelidir.
+        window.onload = async function () {
+            showLoading();
+            // fetch api js ile bir apiye istek atıp json formatında veri çekmek httpget veya json formatındaki veriyi sunucuya api ye göndermek için kullandığımız bir js özelliğidir.
+            // ilk blok endpointimizi tanımladığımız blok.
+            await loadData();
+            hideLoading();
+            renderHtml(data); // tüm datayı render et
+            userClick();
+
+        };
+        const loadData = async () => {
+            let response = await fetch(
+                "https://jsonplaceholder.typicode.com/posts"
+
+            );
+            data = await response.json();
+            console.log('load', loadData);
+
+            const responseUser = await fetch("https://jsonplaceholder.typicode.com/users");
+            dataUser = await responseUser.json();
+            console.log(dataUser);
+
+            const responseComment = await fetch("https://jsonplaceholder.typicode.com/comments");
+            dataComment = await responseComment.json();
+            console.log(dataComment);
+        }
+
+        const showLoading = () => {
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.setAttribute("style", "display:block");
+        };
+        const hideLoading = () => {
+            const loadingDiv = document.getElementById("loading");
+            loadingDiv.setAttribute("style", "display:none");
+        };
+
+        const renderHtml = (dataSource) => {
+            const container = document.getElementById("list-container");
+            container.innerHTML = "";
+
+            dataSource.forEach((item) => {
+                const itemTemplate = `
+                            
+                <a href="articles.html?postId=${item.id}" onclick="userClick(${item.id})" class="list-group-item list-group-item-action active" aria-current="true">                     
+                    <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1"> ${item.title}</h5>
+                            <small>3 days ago</small>
+                    </div>
+                    <p class="mb-1"> ${item?.body}</p>
+                    <small>And some small print.</small>
+                </a>
+                <hr>`;
+                container.innerHTML += itemTemplate;
+            });
+        };
+
+
+
+        const search = (event) => {
+            let searchText = event.target.value;
+            showLoading();
+
+            const filteredData = data.filter((x) => new RegExp(searchText, 'i').test(x.title));
+            hideLoading();
+            renderHtml(filteredData);
+
+            console.log('search', filteredData);
+            console.log('allData', data);
+        };
+
+
+        const userClick = (id) => {
+            const articleFind = document.getElementById('article-container');
+            articleFind.innerHTML='';
+
+            const dataItem = data.filter(x => x.id == id);
+            console.log("dataitem",dataItem);
+            dataItem.forEach((item) => {
+                const articleTemplate = `
+                        <h1 class="display-3 text-center">${item.title}</h1>
+                        <!-- Makale içerikleri sıralanacak aşağıda -->
+                        <div class="mt-5">
+                            <p>${item.body}</p>
+                        </div>
+                    `;
+                articleFind.innerHTML = articleTemplate;
+
+
+                const articleComment = document.getElementById('comment-container');
+                articleComment.innerHTML='';
+
+                const filteredComment = dataComment.filter(x => x.postId == id);
+                console.log(filteredComment);
+                filteredComment.forEach((com) => {
+
+                    const commentTemplate = `
+                        <h3>Comments</h3>
+                        <!-- Comment içerikleri sıralanacak -->
+                        <div class="list-group">
+                            <figure>
+                                <blockquote class="blockquote">
+                                    <p>${com.body}</p>
+                                </blockquote>
+                                <figcaption class="blockquote-footer">
+                                    ${com.email} in <cite title="Source Title">Source Title</cite>
+                                </figcaption>
+                            </figure>
+                            
+                        </div> `;
+                    articleComment.innerHTML += commentTemplate;
+                })
+            });
+
+        }
+
+
+
+
+
+    </script>
+
+
+
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
+        integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
